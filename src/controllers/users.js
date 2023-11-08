@@ -2,25 +2,21 @@ const pool = require('../connection');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const encryptedSystemPassword = require('../systempassword');
+const { validatorFieldFilled } = require('../utils/validateRegister');
 
 const register = async (req, res) => {
-    const { first_name, last_name, email, cpf, password } = req.body;
+    const data = req.body;
 
-    if (!first_name) {
-        return res.status(400).json({ message: 'Campo primeiro nome obrigatório.' });
+    const dataIsvalid = validatorFieldFilled(data);
+
+    if(dataIsvalid?.message){
+        return res.send(dataIsvalid)
+    }else{
+      return res.send(
+        `salvar dado no banco!`
+      )
     }
-    if (!last_name) {
-        return res.status(400).json({ message: 'Campo sobrenome obrigatório.' });
-    }
-    if (!email) {
-        return res.status(400).json({ message: 'Campo e-mail obrigatório.' });
-    }
-    if (!cpf) {
-        return res.status(400).json({ message: 'Campo cpf obrigatório.' });
-    }
-    if (!password) {
-        return res.status(400).json({ message: 'Campo senha obrigatório.' });
-    }
+
 
     try {
         const encryptedPassword = await bcrypt.hash(password, 10);
