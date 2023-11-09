@@ -1,8 +1,9 @@
 const pool = require('../connection');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const encryptedSystemPassword = require('../systempassword');
 const { validatorFieldFilled } = require('../utils/validateRegister');
+const { encryptorPassword } = require('../utils/encryptorPassword');
+const { createUser } = require('../services/createUser');
 
 const register = async (req, res) => {
     const data = req.body;
@@ -12,23 +13,23 @@ const register = async (req, res) => {
     if(dataIsvalid?.message){
         return res.status(400).json(dataIsvalid)
     }
-
-
+    
     try {
-        const encryptedPassword = await bcrypt.hash(data.password, 10);
 
-        const { rows } = await pool.query(
-            `
-            INSERT INTO users 
-            (first_name, last_name, email, cpf, password )
-            VALUES 
-            ($1, $2, $3, $4, $5)
-            RETURNING *
-            `,
-            [data.first_name, data.last_name,data.email,data.cpf, encryptedPassword]
-        )
+        const encryptedPassword = await encryptorPassword(data.password);
 
-        return res.status(201).json(rows[0]);
+        const dataNewUser = {
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
+          cpf: data.cpf,
+          password: encryptedPassword
+        };
+
+       
+        const newUser = await createUser(dataNewUser);
+
+        return res.status(201).json(newUser);
 
     } catch (error) {
         console.log(error)
