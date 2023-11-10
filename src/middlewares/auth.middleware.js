@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const secretyJwt = require('../jwtSecretyKey');
-const { getUserById } = require('../services/getUserById');
+const { getUserById } = require('../services/getUserById.service');
 
 const verifyLoggedUser = async (req, res, next) => {
     const {authorization} = req.headers;

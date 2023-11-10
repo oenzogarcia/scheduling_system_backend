@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerController, loginController } = require('./controllers/users');
+const { registerController, loginController } = require('./controllers/user.controller');
 const routes = express();
 
 routes.post('/user', registerController);

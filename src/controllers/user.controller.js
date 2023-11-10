@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
 const encryptedSystemPassword = require('../systempassword');
-const { validatorFieldFilled } = require('../utils/validateRegister');
-const { encryptorPassword } = require('../utils/encryptorPassword');
-const { createUser } = require('../services/createUser');
-const { validatorFieldFilledLogin } = require('../utils/validateLogin');
-const { getUser } = require('../services/getUser');
-const { authenticate } = require('../services/authenticate');
+const { validatorFieldFilled } = require('../utils/validateRegister.utils');
+const { encryptorPassword } = require('../utils/encryptorPassword.utils');
+const { createUser } = require('../services/createUser.service');
+const { validatorFieldFilledLogin } = require('../utils/validateLogin.utils');
+const { getUser } = require('../services/getUser.service');
+const { authenticate } = require('../services/authenticate.service');
 
 
 const registerController = async (req, res) => {
