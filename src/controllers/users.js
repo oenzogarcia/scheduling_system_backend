@@ -4,8 +4,11 @@ const encryptedSystemPassword = require('../systempassword');
 const { validatorFieldFilled } = require('../utils/validateRegister');
 const { encryptorPassword } = require('../utils/encryptorPassword');
 const { createUser } = require('../services/createUser');
+const { validatorFieldFilledLogin } = require('../utils/validateLogin');
+const { getUser } = require('../services/getUser');
+const { authenticate } = require('../services/authenticate');
 
-const register = async (req, res) => {
+const registerController = async (req, res) => {
     const data = req.body;
 
     const dataIsvalid = validatorFieldFilled(data);
@@ -15,6 +18,18 @@ const register = async (req, res) => {
     }
     
     try {
+        const newUsercpfAndEmail = { email: data.email, cpf: data.cpf };
+
+        const {rowCount, rows} = await getUser(newUsercpfAndEmail);
+
+        if(rowCount > 0){
+          
+            return res.status(400).json({
+                message: 'Se você já possui uma conta, faça login!'
+            });
+        }
+
+
 
         const encryptedPassword = await encryptorPassword(data.password);
 
@@ -37,6 +52,39 @@ const register = async (req, res) => {
     }
 }
 
+
+const loginController = async (req, res) => {
+    const data = req.body;
+
+    const dataIsvalid = validatorFieldFilledLogin(data);
+
+    if(dataIsvalid?.message){
+        return res.status(400).json(dataIsvalid)
+    }
+
+    try {
+
+        const { rows, passwordIsValid} = await authenticate(data.email, data.password);
+
+        if(!passwordIsValid){
+            return res.json({message: 'dados inválidos'})
+        }
+        
+
+        return res.json({
+            user:rows[0],
+            logado: true
+        })
+
+    } catch (error) {
+        
+    }
+    
+
+}
+
+
 module.exports = {
-    register
+    registerController,
+    loginController
 }
