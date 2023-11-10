@@ -10,7 +10,9 @@ const authenticate = async (email, password) => {
     [email],
   );
 
-  const passwordIsValid = await bcrypt.compare(password, rows[0].password);
+  console.log(rows[0]?.password);
+
+  const passwordIsValid = await bcrypt.compare(password, rows[0]?.password);
 
   return {
     rows,

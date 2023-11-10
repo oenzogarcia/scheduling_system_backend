@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
-const encryptedSystemPassword = require('../systempassword');
 const { validatorFieldFilled } = require('../utils/validateRegister.utils');
 const { encryptorPassword } = require('../utils/encryptorPassword.utils');
 const { createUser } = require('../services/createUser.service');
 const { validatorFieldFilledLogin } = require('../utils/validateLogin.utils');
 const { getUser } = require('../services/getUser.service');
 const { authenticate } = require('../services/authenticate.service');
+const secretyJwt = require('../jwtSecretyKey');
 
 
 const registerController = async (req, res) => {
@@ -29,8 +29,6 @@ const registerController = async (req, res) => {
             });
         }
 
-
-
         const encryptedPassword = await encryptorPassword(data.password);
 
         const dataNewUser = {
@@ -48,7 +46,7 @@ const registerController = async (req, res) => {
 
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ message: 'Erro interno de servidor.' });
+        return res.status(500).json({ message: 'Erro interno do servidor. Tente novamente.' });
     }
 }
 
@@ -64,15 +62,19 @@ const loginController = async (req, res) => {
 
     try {
 
-        const { rows, passwordIsValid} = await authenticate(data.email, data.password);
+        const userExists = await getUser({email: data.email})
+
+        if(userExists.rowCount < 1){
+             return res.json({message: 'Email ou senha inválidos.'})
+        } 
+
+        const { rows, passwordIsValid} = await authenticate(data?.email, data?.password);
 
         if(!passwordIsValid){
-            return res.json({message: 'dados inválidos'})
+            return res.json({message: 'Email ou senha inválidos.'})
         }
         
         const token = jwt.sign({id: rows[0].id}, secretyJwt, {expiresIn: '3d'});
-
-        console.log(rows[0].id);
 
         return res.json({
             user: {...rows[0]},
@@ -80,12 +82,10 @@ const loginController = async (req, res) => {
         })
 
     } catch (error) {
-        
+        console.log(error.message)
+         return res.json({message: 'Erro interno do servidor. Tente novamente.'})
     }
-    
-
 }
-
 
 module.exports = {
     registerController,
