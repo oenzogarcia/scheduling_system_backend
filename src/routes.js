@@ -6,9 +6,9 @@ const routes = express();
 
 routes.post('/user', registerController);
 routes.post('/user/login', loginController);
-
 routes.use(verifyLoggedUser);
-
 routes.get('/user/oi', teste);
 
-module.exports = routes;
+module.exports = {
+    routes
+};
