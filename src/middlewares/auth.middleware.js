@@ -1,6 +1,9 @@
+const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
-const secretyJwt = require('../jwtSecretyKey');
+
 const { getUserById } = require('../services/getUserById.service');
+
+dotenv.config();
 
 const verifyLoggedUser = async (req, res, next) => {
 
@@ -15,7 +18,7 @@ const verifyLoggedUser = async (req, res, next) => {
     const token = authorization.split(' ')[1];
 
     try {
-        const { id } = await jwt.verify(token, secretyJwt);
+        const { id } = await jwt.verify(token, process.env.JWT_SECRETY_KEY);
         const { rows, rowCount } = await getUserById(id);
 
         if(rowCount < 1){
