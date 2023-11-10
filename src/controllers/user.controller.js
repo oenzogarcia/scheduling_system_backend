@@ -1,12 +1,14 @@
 const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+
 const { validatorFieldFilled } = require('../utils/validateRegister.utils');
 const { encryptorPassword } = require('../utils/encryptorPassword.utils');
 const { createUser } = require('../services/createUser.service');
 const { validatorFieldFilledLogin } = require('../utils/validateLogin.utils');
 const { getUser } = require('../services/getUser.service');
 const { authenticate } = require('../services/authenticate.service');
-const secretyJwt = require('../jwtSecretyKey');
 
+dotenv.config();
 
 const registerController = async (req, res) => {
     const data = req.body;
@@ -74,7 +76,7 @@ const loginController = async (req, res) => {
             return res.json({message: 'Email ou senha inválidos.'})
         }
         
-        const token = jwt.sign({id: rows[0].id}, secretyJwt, {expiresIn: '3d'});
+        const token = jwt.sign({id: rows[0].id}, process.env.JWT_SECRETY_KEY, {expiresIn: '3d'});
 
         return res.json({
             user: {...rows[0]},
