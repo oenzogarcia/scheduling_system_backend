@@ -73,19 +73,67 @@ describe('Teste de validação de registro', () => {
   });
 });
 
+//Teste Autenticação
+
 describe('Teste de autenticação', () => {
-  it('Deve retornar "Se você já possui uma conta, faça login."', async () => {
+    it('Deve retornar "Se você já possui uma conta, faça login."', async () => {
+        const response = await request(app)
+        .post('/user')
+        .send({
+            "first_name": "Gustavo",
+            "last_name": "Batista",
+            "cpf": "098.096.765-10",
+            "email": "maria@gmail.com",
+            "password": "82077877"
+        });
+
+        expect(response.status).toBe(400);
+        expect(response.body.message).toEqual('Se você já possui uma conta, faça login.');
+    });
+
+    it('Deve retornar "Se você já possui uma conta, faça login."', async () => {
     const response = await request(app)
       .post('/user')
       .send({
         "first_name": "Gustavo",
         "last_name": "Batista",
         "cpf": "098.096.765-10",
+        "email": "mariaa@gmail.com",
+        "password": "82077877"
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toEqual('Se você já possui uma conta, faça login.');
+  })
+
+    it('Deve retornar "Se você já possui uma conta, faça login."', async () => {
+    const response = await request(app)
+      .post('/user')
+      .send({
+        "first_name": "Gustavo",
+        "last_name": "Batista",
+        "cpf": "098.094.765-10",
         "email": "maria@gmail.com",
         "password": "82077877"
       });
 
     expect(response.status).toBe(400);
     expect(response.body.message).toEqual('Se você já possui uma conta, faça login.');
-  });
+  })
+  
+    it('Deve retornar um registro do banco.', async () => {
+    const response = await request(app)
+      .post('/user')
+      .send({
+        "first_name": "Gustavo",
+        "last_name": "Batista",
+        "cpf": "111.224.365-91",
+        "email": "gustavee@gmail.com",
+        "password": "82077877"
+      });
+
+    expect(response.status).toBe(201);
+    console.log(response.body);
+    expect(response.body).toHaveProperty('id');
+  })
 });
