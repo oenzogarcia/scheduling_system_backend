@@ -1,4 +1,3 @@
-const pool = require('../connection');
 const jwt = require('jsonwebtoken');
 const encryptedSystemPassword = require('../systempassword');
 const { validatorFieldFilled } = require('../utils/validateRegister');
@@ -7,6 +6,7 @@ const { createUser } = require('../services/createUser');
 const { validatorFieldFilledLogin } = require('../utils/validateLogin');
 const { getUser } = require('../services/getUser');
 const { authenticate } = require('../services/authenticate');
+
 
 const registerController = async (req, res) => {
     const data = req.body;
@@ -70,10 +70,13 @@ const loginController = async (req, res) => {
             return res.json({message: 'dados inválidos'})
         }
         
+        const token = jwt.sign({id: rows[0].id}, secretyJwt, {expiresIn: '3d'});
+
+        console.log(rows[0].id);
 
         return res.json({
-            user:rows[0],
-            logado: true
+            user: {...rows[0]},
+            token
         })
 
     } catch (error) {
