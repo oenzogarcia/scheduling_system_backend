@@ -27,7 +27,7 @@ const registerController = async (req, res) => {
         if(rowCount > 0){
           
             return res.status(400).json({
-                message: 'Se você já possui uma conta, faça login!'
+                message: 'Se você já possui uma conta, faça login.'
             });
         }
 
