@@ -7,6 +7,9 @@ const { createUser } = require('../services/createUser.service');
 const { validatorFieldFilledLogin } = require('../utils/validateLogin.utils');
 const { getUser } = require('../services/getUser.service');
 const { authenticate } = require('../services/authenticate.service');
+const { sendMail } = require('../services/sendMail.service');
+const { getUserById } = require('../services/getUserById.service');
+const { updateUser } = require('../services/updateUser.service');
 
 dotenv.config();
 
@@ -40,11 +43,17 @@ const registerController = async (req, res) => {
           cpf: data.cpf,
           password: encryptedPassword
         };
-
        
         const newUser = await createUser(dataNewUser);
+        const secrety = process.env.JWT_SECRETY_KEY;
+        const token = jwt.sign({id: newUser.id}, secrety, {expiresIn: '30m'});
+        const pathTwoStepVerification = `${process.env.SERVER_EXPRESS_PROTOCOL}://${process.env.SERVER_EXPRESS_HOST}:${process.env.SERVER_EXPRESS_PORT}/user/recover-password/${token}`;
 
-        return res.status(201).json(newUser);
+        console.log(pathTwoStepVerification);
+
+        sendMail(newUser.email, pathTwoStepVerification);
+    
+        return res.status(201).json({user:{...newUser}, message: 'Verifique seu email.'});
 
     } catch (error) {
         console.log(error)
@@ -69,6 +78,10 @@ const loginController = async (req, res) => {
         if(userExists.rowCount < 1){
              return res.json({message: 'Email ou senha inválidos.'})
         } 
+        
+        if(!userExists.rows[0].active){
+             return res.json({message: 'Você não realizou a verificação de duas etapas.'})
+        } 
 
         const { rows, passwordIsValid} = await authenticate(data?.email, data?.password);
 
@@ -89,7 +102,32 @@ const loginController = async (req, res) => {
     }
 }
 
+const twoStepVerification = async (req, res) => {
+    const {token} = req.params;
+     
+    jwt.verify(token, process.env.JWT_SECRETY_KEY, async (err, decoded) => {
+        if (err) {
+            return res.status(400).json({
+                    message : 'Token inválido ou expirou.'
+                });
+            
+        } else {
+            const { id } = decoded;
+            const { rows } = await getUserById(id);
+            console.log(rows[0].active);
+             if(rows[0].active){
+                return res.status(400).json({
+                    message : 'Você já utilizou esse token.'
+                });
+            }
+            const updateFieldActive = await updateUser(id, true);
+            return res.json(updateFieldActive);
+        }
+        });  
+};
+
 module.exports = {
     registerController,
-    loginController
+    loginController,
+    twoStepVerification
 }
