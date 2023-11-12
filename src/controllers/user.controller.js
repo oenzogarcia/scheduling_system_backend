@@ -79,17 +79,17 @@ const loginController = async (req, res) => {
         const userExists = await getUser({email: data.email})
 
         if(userExists.rowCount < 1){
-             return res.json({message: 'Email ou senha inválidos.'})
+             return res.status(400).json({message: 'Email ou senha inválidos.'})
         } 
         
         if(!userExists.rows[0].active){
-             return res.json({message: 'Você não realizou a verificação de duas etapas.'})
+             return res.status(400).json({message: 'Você não realizou a verificação de duas etapas.'})
         } 
 
         const { rows, passwordIsValid} = await authenticate(data?.email, data?.password);
 
         if(!passwordIsValid){
-            return res.json({message: 'Email ou senha inválidos.'})
+            return res.status(400).json({message: 'Email ou senha inválidos.'})
         }
         
         const token = jwt.sign({id: rows[0].id}, process.env.JWT_SECRETY_KEY, {expiresIn: '3d'});
