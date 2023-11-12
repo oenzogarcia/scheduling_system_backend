@@ -5,7 +5,7 @@ dotenv.config();
 const nodemailer = require('nodemailer');
 
 
-const sendMail = (email, path) => {
+const sendMail = (email,subject, text, path) => {
     const transporter = nodemailer.createTransport({
       service: 'gmail', // Por exemplo, 'gmail'
       auth: {
@@ -17,8 +17,8 @@ const sendMail = (email, path) => {
   const mailOptions = {
       from: 'gustavobatistadev@gmail.com',
       to: email,
-      subject: 'Clinic: Verificação de duas etapas.',
-      text: 'olá' + path
+      subject: subject,
+      text: text + path
     };
 
   transporter.sendMail(mailOptions, (error, info) => {
