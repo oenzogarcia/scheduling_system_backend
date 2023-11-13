@@ -1,3 +1,5 @@
+const { cpfFormatter } = require("./cpfFormatter.utils");
+
 const validatorFieldFilled = (data) => {
     const keys = ['first_name', 'email', 'last_name', 'cpf', 'password'];
 
@@ -29,7 +31,7 @@ const validatorFieldFilled = (data) => {
     
     if(!cpfIsValid){
          return {
-            message: `Cpf precisa estar no formato 000.000.000-00 .`
+            message: `Cpf precisa conter apenas números.`
         };
     }
 
@@ -61,8 +63,11 @@ const validatorFirstName= (firstName) => {
 };
 
 const validatorCpf= (cpf) => {
-    const regexCpf = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
-    return regexCpf.test(cpf);
+   
+    const regexCpf = /^\d+$/;
+   
+    return  regexCpf.test(cpf);;
+
 };
 
 const validatorLastName= (last_name) => {

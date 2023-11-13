@@ -1,13 +1,14 @@
 const express = require('express');
-const { registerController, loginController } = require('./controllers/user.controller');
-const teste = require('./controllers/teste');
+const { registerController, loginController, twoStepVerificationController, recoverPasswordMessageController, recoverPasswordController } = require('./controllers/user.controller');
 const { verifyLoggedUser } = require('./middlewares/auth.middleware');
 const routes = express();
 
 routes.post('/user', registerController);
 routes.post('/user/login', loginController);
-routes.use(verifyLoggedUser);
-routes.get('/user/oi', teste);
+routes.get('/user/verification-account/:token', twoStepVerificationController );
+routes.post('/user/recover-password', recoverPasswordMessageController);
+routes.post('/user/recover', recoverPasswordController);
+
 
 module.exports = {
     routes
