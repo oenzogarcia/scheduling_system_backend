@@ -1,6 +1,7 @@
 const express = require('express');
 const { registerController, loginController, twoStepVerificationController, recoverPasswordMessageController, recoverPasswordController } = require('./controllers/user.controller');
 const { verifyLoggedUser } = require('./middlewares/auth.middleware');
+const { schedulingController } = require('./controllers/scheduling.controller');
 const routes = express();
 
 routes.post('/user', registerController);
@@ -9,7 +10,7 @@ routes.get('/user/verification-account/:token', twoStepVerificationController);
 routes.post('/user/recover-password', recoverPasswordMessageController);
 routes.post('/user/recover', recoverPasswordController);
 
-routes.post('/scheduling');
+routes.post('/scheduling', schedulingController);
 
 module.exports = {
     routes
