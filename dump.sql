@@ -5,7 +5,8 @@ CREATE TABLE users (
     email text NOT NULL UNIQUE,
     cpf text NOT NULL UNIQUE,
     password text NOT NULL,
-    created_at timestamp DEFAULT NOW()
+    created_at timestamp DEFAULT NOW(),
+    active boolean DEFAULT false
 );
 
 
