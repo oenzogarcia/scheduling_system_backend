@@ -21,7 +21,7 @@ const verifyLoggedUser = async (req, res, next) => {
         const { id } = await jwt.verify(token, process.env.JWT_SECRETY_KEY);
         const { rows, rowCount } = await getUserById(id);
 
-        if(rowCount < 1){
+        if(rowCount < 1){ 
             return res.status(401).json({
             message: 'Não autorizado.'
         });

@@ -1,6 +1,6 @@
 const pool = require('../connection');
 
-const updateuserPassword = async (id, password) => {
+const updateUserPasswordService = async (id, password) => {
     const { rows } = await pool.query(
         `
         UPDATE users 
@@ -15,5 +15,5 @@ const updateuserPassword = async (id, password) => {
 };
 
 module.exports = {
-    updateuserPassword
+    updateUserPasswordService
 };

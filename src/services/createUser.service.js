@@ -1,6 +1,6 @@
 const pool = require('../connection');
  
-const createUser = async (data) => {
+const createUserService = async (data) => {
     const { rows } = await pool.query(
         `
         INSERT INTO users 
@@ -16,5 +16,5 @@ const createUser = async (data) => {
 };
 
 module.exports = {
-    createUser
+    createUserService
 };
