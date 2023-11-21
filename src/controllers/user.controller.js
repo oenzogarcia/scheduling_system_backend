@@ -26,15 +26,16 @@ const registerController = async (req, res) => {
 
     const dataIsvalid = validatorFieldFilled(data);
 
-    if(dataIsvalid?.message){
+    if (dataIsvalid?.message) {
         return res.status(400).json(dataIsvalid)
     }
-    
+
     try {
+      
         const newUserCpfAndEmail = { email: data.email, cpf:  cpfFormatter(data.cpf) };
         const {rowCount } = await getUserService(newUserCpfAndEmail);
 
-        if(rowCount > 0){
+        if (rowCount > 0) {
             return res.status(400).json({
                 message: 'Se você já possui uma conta, faça login.'
             });
@@ -43,11 +44,11 @@ const registerController = async (req, res) => {
         const encryptedPassword = await encryptorPassword(data.password);
 
         const dataNewUser = {
-          first_name: data.first_name,
-          last_name: data.last_name,
-          email: data.email,
-          cpf: cpfFormatter(data.cpf),
-          password: encryptedPassword
+            first_name: data.first_name,
+            last_name: data.last_name,
+            email: data.email,
+            cpf: cpfFormatter(data.cpf),
+            password: encryptedPassword
         };
        
         const newUser = await createUserService(dataNewUser);
@@ -63,6 +64,7 @@ const registerController = async (req, res) => {
         return res.status(201).json({user:{...newUser}, message: 'Verifique seu email.'});
 
     } catch (error) {
+
         return res.status(500).json({ message: 'Erro interno do servidor. Tente novamente.' });
     }
 }
@@ -72,11 +74,12 @@ const loginController = async (req, res) => {
     const data = req.body;
     const dataIsvalid = validatorFieldFilledLogin(data);
 
-    if(dataIsvalid?.message){
+    if (dataIsvalid?.message) {
         return res.status(400).json(dataIsvalid)
     }
 
     try {
+
         const userExists = await getUserService({email: data.email})
 
         if(userExists.rowCount < 1){
@@ -89,58 +92,69 @@ const loginController = async (req, res) => {
 
         const { rows, passwordIsValid} = await authenticateService(data?.email, data?.password);
 
-        if(!passwordIsValid){
-            return res.status(400).json({message: 'Email ou senha inválidos.'})
+
+
+        if (!passwordIsValid) {
+            return res.status(400).json({ message: 'Email ou senha inválidos.' })
         }
+
         
         const token = generatorTokenJwtService(userExists.rows[0], '30min');
 
         return res.json({
-            user: {...rows[0]},
+            user: { ...rows[0] },
             token
         })
 
     } catch (error) {
+      
         return res.json({message: 'Erro interno do servidor. Tente novamente.'})
     }
 }
 
 const twoStepVerificationController = async (req, res) => {
-    const {token} = req.params;
-     
+    const { token } = req.params;
+
     jwt.verify(token, process.env.JWT_SECRETY_KEY, async (err, decoded) => {
         if (err) {
             return res.status(400).json({
-                    message : 'Token inválido ou expirou.'
-                });
-            
+                message: 'Token inválido ou expirou.'
+            });
+
         } else {
             const { id } = decoded;
+
             const { rows } = await getUserByIdService(id);
         
              if(rows[0].active){
+
                 return res.status(400).json({
-                    message : 'Você já utilizou esse token.'
+                    message: 'Você já utilizou esse token.'
                 });
             }
             await updateUserService(id, true);
             return res.send(`Email verificado com sucesso! Faça login: <a href=http://localhost:5173/>Login</a>`);
         }
+
     });  
+
 };
 
 const recoverPasswordMessageController = async (req, res) => {
     const data = req.body;
     const email = data.email;
+
     const userExists = await getUserService({email: email});
 
-    if(userExists.rowCount < 1) {
+
+    if (userExists.rowCount < 1) {
         return res.status(400).json({
-                message : 'Usuário não encontrado.'
-            });
+            message: 'Usuário não encontrado.'
+        });
     }
 
     const hashids = new Hashids(process.env.JWT_SECRETY_KEY);
+
 
     const hash = hashids.encode(userExists.rows[0].id); 
 
@@ -158,20 +172,23 @@ const recoverPasswordMessageController = async (req, res) => {
 };
 
 const recoverPasswordController = async (req, res) => {
+
     const body = req.body;
     const password = body?.password;
     const passwordConfirm = body?.passwordConfirm;
     const passwordIsValid = validatorPasswordUpdate(password, passwordConfirm);
 
-    if(passwordIsValid?.message){
+    if (passwordIsValid?.message) {
         return res.status(400).json(passwordIsValid);
     }
 
     const hash = body.hash;
 
-    if(!hash?.trim()){
+    if (!hash?.trim()) {
         return res.status(400).json({
+
             message : 'Ocorreu um erro inesperado. Tente novamente.'
+
         });
     }
 
@@ -179,14 +196,15 @@ const recoverPasswordController = async (req, res) => {
     const id = hashids.decode(hash);
     const {rowCount } = await getUserByIdService(Number(id));
 
-    if(rowCount < 1){
+    if (rowCount < 1) {
         return res.status(400).json({
-            message : 'Usuário não encontrado.'
+            message: 'Usuário não encontrado.'
         });
     }
 
     const encryptedPassword = await encryptorPassword(password);
     const userUpdated = await updateUserPasswordService(Number(id), encryptedPassword);
+
 
     sendMailService(userUpdated.email, 'Sua senha foi alterada com sucesso.', 'Agora você pode usufruir do nosso sistema', '');
 
@@ -195,6 +213,7 @@ const recoverPasswordController = async (req, res) => {
  
 };
        
+
 module.exports = {
     registerController,
     loginController,
