@@ -1,6 +1,6 @@
 const pool = require('../connection');
 
-const getUserById = async id => {
+const getUserByIdService = async id => {
   const { rows, rowCount } = await pool.query(
     `
         SELECT * FROM users 
@@ -16,5 +16,5 @@ const getUserById = async id => {
 };
 
 module.exports = {
-  getUserById,
+  getUserByIdService,
 };

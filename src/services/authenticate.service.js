@@ -1,7 +1,7 @@
 const pool = require('../connection');
 const bcrypt = require('bcrypt');
 
-const authenticate = async (email, password) => {
+const authenticateService = async (email, password) => {
      const { rows, rowCount } = await pool.query(
     `
         SELECT * FROM users 
@@ -22,5 +22,5 @@ const authenticate = async (email, password) => {
 };
 
 module.exports = {
-    authenticate
+    authenticateService
 };
