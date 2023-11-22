@@ -19,6 +19,7 @@ const {
     listSpecialtyByIdController,
     updateSpecialtyController,
     deleteSpecialtyController } = require('./controllers/specialty.controller');
+const { listDoctorsController, listDoctorByIdController, registerDoctorController, updateDoctorController, deleteDoctorController } = require('./controllers/doctor.controller');
 const routes = express();
 
 routes.post('/user', registerController);
@@ -32,6 +33,12 @@ routes.get('/specialty', listSpecialtiesController);
 routes.get('/specialty/:id', listSpecialtyByIdController);
 routes.put('/specialty/:id', updateSpecialtyController);
 routes.delete('/specialty/:id', deleteSpecialtyController);
+
+routes.post('/doctor', registerDoctorController);
+routes.get('/doctor', listDoctorsController);
+routes.get('/doctor/:id', listDoctorByIdController);
+routes.put('/doctor/:id', updateDoctorController);
+routes.delete('/doctor/:id', deleteDoctorController);
 
 routes.use(verifyLoggedUser);
 

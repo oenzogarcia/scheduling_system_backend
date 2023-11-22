@@ -1,31 +1,24 @@
 const pool = require('../connection');
-
-// Cok + Rok + Uok + Dok
+const { createAppointmentService } = require('../services/createAppointment.service');
+const { getSpecialtyService } = require('../services/getSpecialty.service');
+const { generateAppointmentDetailsUtils } = require('../utils/generateAppointmentDetails.utils');
 
 const scheduleAppointmentController = async (req, res) => {
     const { name, email, phone, day, time, specialty } = req.body;
     const { id } = req.user;
 
     try {
-        const specialtyInfo = await pool.query('SELECT * FROM specialties WHERE name = $1', [specialty]);
-        const specialtyId = specialtyInfo.rows[0].id
+        const specialtyInfo = await getSpecialtyService(specialty);
 
-        const scheduling = await pool.query(`
-        INSERT INTO appointments
-        (user_id, name, email, phone, day, hour, specialty, specialty_id)
-        VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING *
-        `, [id, name, email, phone, day, time, specialty, specialtyId]);
-
-        const details = {
-            name: scheduling.rows[0].name,
-            email: scheduling.rows[0].email,
-            phone: scheduling.rows[0].phone,
-            day: scheduling.rows[0].day,
-            hour: scheduling.rows[0].hour,
-            specialty: scheduling.rows[0].specialty
+        if (specialtyInfo.rowCount < 1) {
+            return res.status(404).json({ message: 'Não existe esta especialidade nesta clínica.' });
         }
+
+        const specialtyId = specialtyInfo.rows[0].id;
+
+        const appointment = await createAppointmentService({ id, name, email, phone, day, time, specialty, specialtyId });
+
+        const details = await generateAppointmentDetailsUtils(appointment);
 
         return res.status(201).json({ message: `Consulta agendada com sucesso!`, details });
 
@@ -39,12 +32,6 @@ const listAppointmentsController = async (req, res) => {
     const { id } = req.user;
 
     try {
-        // const appointments = await pool.query(`
-        // SELECT name, email, phone, day, hour, specialty
-        // FROM appointments 
-        // WHERE user_id = $1
-        // `, [id]);
-
         const appointments = await pool.query(`
         SELECT a.name, a.email, a.phone, a.day, a.hour, a.specialty, d.name 
         FROM appointments a
@@ -65,12 +52,6 @@ const listAppointmentByIdController = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        // const appointment = await pool.query(`
-        // SELECT name, email, phone, day, hour, specialty
-        // FROM appointments 
-        // WHERE id = $1 AND user_id = $2
-        // `, [id, userId]);
-
         const appointment = await pool.query(`
         SELECT a.name, a.email, a.phone, a.day, a.hour, a.specialty, d.name 
         FROM appointments a

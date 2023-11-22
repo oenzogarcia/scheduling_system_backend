@@ -1,15 +1,15 @@
 const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
 
-const { getUserById } = require('../services/getUserById.service');
+const { getUserByIdService } = require('../services/getUserById.service');
 
 dotenv.config();
 
 const verifyLoggedUser = async (req, res, next) => {
 
-    const {authorization} = req.headers;
+    const { authorization } = req.headers;
 
-    if(!authorization){
+    if (!authorization) {
         return res.status(401).json({
             message: 'Não autorizado.'
         });
@@ -19,22 +19,23 @@ const verifyLoggedUser = async (req, res, next) => {
 
     try {
         const { id } = await jwt.verify(token, process.env.JWT_SECRETY_KEY);
-        const { rows, rowCount } = await getUserById(id);
+        const { rows, rowCount } = await getUserByIdService(id);
 
-        if(rowCount < 1){ 
+        if (rowCount < 1) {
             return res.status(401).json({
-            message: 'Não autorizado.'
-        });
+                message: 'Não autorizado.'
+            });
         }
 
         req.user = rows[0];
 
         next();
     } catch (error) {
+        console.log(error.message);
         return res.status(401).json({
-        message: 'Não autorizado.'
-    }); 
-    }   
+            message: 'Não autorizado.'
+        });
+    }
 };
 
 module.exports = {
