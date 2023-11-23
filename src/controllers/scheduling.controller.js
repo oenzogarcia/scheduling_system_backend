@@ -1,6 +1,7 @@
 const pool = require('../connection');
 const { createAppointmentService } = require('../services/createAppointment.service');
-const { getAppointmentsWithDoctor, getAppointmentsWithoutDoctor } = require('../services/getAppointments.service');
+const { getAppointmentWithDoctorByIdService, getAppointmentWithoutDoctorByIdService } = require('../services/getAppointmentById.service');
+const { getAppointmentsWithDoctorService, getAppointmentsWithoutDoctorService } = require('../services/getAppointments.service');
 const { getSpecialtyService } = require('../services/getSpecialty.service');
 const { generateAppointmentDetailsUtils } = require('../utils/generateAppointmentDetails.utils');
 
@@ -33,9 +34,9 @@ const listAppointmentsController = async (req, res) => {
     const { id } = req.user;
 
     try {
-        const appointmentsWithDoctor = await getAppointmentsWithDoctor(id);
+        const appointmentsWithDoctor = await getAppointmentsWithDoctorService(id);
 
-        const appointmentsWithoutDoctor = await getAppointmentsWithoutDoctor(id);
+        const appointmentsWithoutDoctor = await getAppointmentsWithoutDoctorService(id);
 
         const allAppointments = {
             confirmados: appointmentsWithDoctor.rows,
@@ -55,21 +56,11 @@ const listAppointmentByIdController = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const appointmentWithDoctor = await pool.query(`
-        SELECT a.name, a.email, a.phone, a.day, a.hour, a.specialty, d.name 
-        FROM appointments a
-        JOIN doctors d
-        ON a.doctor_id = d.id
-        WHERE a.id = $1 AND a.user_id = $2
-        `, [id, userId]);
+        const appointmentWithDoctor = await getAppointmentWithDoctorByIdService(id, userId);
 
         if (appointmentWithDoctor.rowCount < 1) {
 
-            const appointmentWithoutDoctor = await pool.query(`
-            SELECT name, email, phone, day, hour, specialty
-            FROM appointments
-            WHERE id = $1 AND user_id = $2 AND doctor_id IS NULL
-            `, [id, userId]);
+            const appointmentWithoutDoctor = await getAppointmentWithoutDoctorByIdService(id, userId);
 
             if (appointmentWithoutDoctor.rowCount < 1) {
                 return res.status(404).json({ message: 'Este agendamento não existe.' });
