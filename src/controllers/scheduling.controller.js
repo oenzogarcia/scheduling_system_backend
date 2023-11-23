@@ -1,8 +1,10 @@
 const pool = require('../connection');
 const { createAppointmentService } = require('../services/createAppointment.service');
-const { getAppointmentWithDoctorByIdService, getAppointmentWithoutDoctorByIdService } = require('../services/getAppointmentById.service');
+const { deleteAppointmentService } = require('../services/deleteAppointment.service');
+const { getAppointmentWithDoctorByIdService, getAppointmentWithoutDoctorByIdService, getAnyAppointmentByIdService } = require('../services/getAppointmentById.service');
 const { getAppointmentsWithDoctorService, getAppointmentsWithoutDoctorService } = require('../services/getAppointments.service');
 const { getSpecialtyService } = require('../services/getSpecialty.service');
+const { updateAppointmentDateService, updateAppointmentPersonalInfoService } = require('../services/updateAppointment.service');
 const { generateAppointmentDetailsUtils } = require('../utils/generateAppointmentDetails.utils');
 
 const scheduleAppointmentController = async (req, res) => {
@@ -83,21 +85,13 @@ const updateAppointmentDateController = async (req, res) => {
 
     try {
 
-        const appointment = await pool.query(
-            'SELECT * FROM appointments WHERE id = $1 AND user_id = $2',
-            [id, userId]);
+        const appointment = await getAnyAppointmentByIdService(id, userId);
 
         if (appointment.rowCount < 1) {
             return res.status(404).json({ message: 'Este agendamento não existe.' });
         }
 
-        const appointmentUpdate = await pool.query(`
-        UPDATE appointments
-        SET 
-        day = $1,
-        hour = $2
-        WHERE id = $3
-        `, [day, hour, id]);
+        const appointmentUpdate = await updateAppointmentDateService(day, hour, id)
 
         return res.status(200).json({ message: 'Data atualizada com sucesso.' });
 
@@ -112,21 +106,13 @@ const updateAppointmentPersonalInfoController = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const appointment = await pool.query(
-            'SELECT * FROM appointments WHERE id = $1 AND user_id = $2',
-            [id, userId]);
+        const appointment = await getAnyAppointmentByIdService(id, userId);
 
         if (appointment.rowCount < 1) {
             return res.status(404).json({ message: 'Este agendamento não existe.' });
         }
 
-        const appointmentUpdate = await pool.query(`
-        UPDATE appointments
-        SET 
-        email = $1,
-        phone = $2
-        WHERE id = $3
-        `, [email, phone, id]);
+        const appointmentUpdate = await updateAppointmentPersonalInfoService(email, phone, id);
 
         return res.status(200).json({ message: 'Dados pessoais atualizados com sucesso.' });
 
@@ -140,18 +126,13 @@ const deleteAppointmentController = async (req, res) => {
     const userId = req.user.id
 
     try {
-        const appointment = await pool.query(
-            'SELECT * FROM appointments WHERE id = $1 AND user_id = $2',
-            [id, userId]);
+        const appointment = await getAnyAppointmentByIdService(id, userId);
 
         if (appointment.rowCount < 1) {
             return res.status(404).json({ message: 'Este agendamento não existe.' });
         }
 
-        const deleteAppointment = await pool.query(`
-        DELETE FROM appointments
-        WHERE id = $1
-        `, [id]);
+        const deleteAppointment = await deleteAppointmentService(id);
 
         return res.status(200).json({ message: 'Agendamento excluído com sucesso.' });
 

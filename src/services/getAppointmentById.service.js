@@ -28,7 +28,21 @@ const getAppointmentWithoutDoctorByIdService = async (appointmentId, userId) => 
     }
 }
 
+const getAnyAppointmentByIdService = async (appointmentId, userId) => {
+    const { rows, rowCount } = await pool.query(`
+            SELECT name, email, phone, day, hour, specialty
+            FROM appointments
+            WHERE id = $1 AND user_id = $2
+            `, [appointmentId, userId]);
+
+    return {
+        rows,
+        rowCount
+    }
+}
+
 module.exports = {
     getAppointmentWithDoctorByIdService,
-    getAppointmentWithoutDoctorByIdService
+    getAppointmentWithoutDoctorByIdService,
+    getAnyAppointmentByIdService
 }
