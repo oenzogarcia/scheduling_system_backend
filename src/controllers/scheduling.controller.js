@@ -1,5 +1,6 @@
 const pool = require('../connection');
 const { createAppointmentService } = require('../services/createAppointment.service');
+const { getAppointmentsWithDoctor, getAppointmentsWithoutDoctor } = require('../services/getAppointments.service');
 const { getSpecialtyService } = require('../services/getSpecialty.service');
 const { generateAppointmentDetailsUtils } = require('../utils/generateAppointmentDetails.utils');
 
@@ -32,17 +33,19 @@ const listAppointmentsController = async (req, res) => {
     const { id } = req.user;
 
     try {
-        const appointments = await pool.query(`
-        SELECT a.name, a.email, a.phone, a.day, a.hour, a.specialty, d.name 
-        FROM appointments a
-        JOIN doctors d
-        ON a.doctor_id = d.id
-        WHERE a.user_id = $1
-        `, [id]);
+        const appointmentsWithDoctor = await getAppointmentsWithDoctor(id);
 
-        return res.status(200).json(appointments.rows);
+        const appointmentsWithoutDoctor = await getAppointmentsWithoutDoctor(id);
+
+        const allAppointments = {
+            confirmados: appointmentsWithDoctor.rows,
+            pendentes: appointmentsWithoutDoctor.rows
+        }
+
+        return res.status(200).json(allAppointments);
 
     } catch (error) {
+        console.log(error.message);
         return res.status(500).json({ message: 'Erro interno de servidor.' });
     }
 }
@@ -52,7 +55,7 @@ const listAppointmentByIdController = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const appointment = await pool.query(`
+        const appointmentWithDoctor = await pool.query(`
         SELECT a.name, a.email, a.phone, a.day, a.hour, a.specialty, d.name 
         FROM appointments a
         JOIN doctors d
@@ -60,13 +63,24 @@ const listAppointmentByIdController = async (req, res) => {
         WHERE a.id = $1 AND a.user_id = $2
         `, [id, userId]);
 
-        if (appointment.rowCount < 1) {
-            return res.status(404).json({ message: 'Este agendamento não existe.' });
+        if (appointmentWithDoctor.rowCount < 1) {
+
+            const appointmentWithoutDoctor = await pool.query(`
+            SELECT name, email, phone, day, hour, specialty
+            FROM appointments
+            WHERE id = $1 AND user_id = $2 AND doctor_id IS NULL
+            `, [id, userId]);
+
+            if (appointmentWithoutDoctor.rowCount < 1) {
+                return res.status(404).json({ message: 'Este agendamento não existe.' });
+            }
+            return res.status(200).json({ pendente: appointmentWithoutDoctor.rows[0] });
         }
 
-        return res.status(200).json(appointment.rows[0]);
+        return res.status(200).json({ confirmado: appointmentWithDoctor.rows[0] });
 
     } catch (error) {
+        console.log(error.message)
         return res.status(500).json({ message: 'Erro interno de servidor.' });
     }
 }
