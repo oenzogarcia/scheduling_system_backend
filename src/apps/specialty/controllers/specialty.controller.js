@@ -1,4 +1,3 @@
-const pool = require('../../../connection');
 const createSpecialtyService = require('../services/createSpecialty.service');
 const deleteSpecialtyService = require('../services/deleteSpecialty.service');
 const getAllSpecialtiesService = require('../services/getAllSpecialties.service');
