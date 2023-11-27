@@ -1,9 +1,8 @@
-const pool = require('../../../connection');
 const { createAppointmentService } = require('../services/createAppointment.service');
 const { deleteAppointmentService } = require('../services/deleteAppointment.service');
 const { getAppointmentWithDoctorByIdService, getAppointmentWithoutDoctorByIdService, getAnyAppointmentByIdService } = require('../services/getAppointmentById.service');
 const { getAppointmentsWithDoctorService, getAppointmentsWithoutDoctorService } = require('../services/getAppointments.service');
-const { getSpecialtyService } = require('../../specialty/services/getSpecialty.service');
+const { getSpecialtyByNameService } = require('../../specialty/services/getSpecialtyByName.service');
 const { updateAppointmentDateService, updateAppointmentPersonalInfoService } = require('../services/updateAppointment.service');
 const { generateAppointmentDetailsUtils } = require('../utils/generateAppointmentDetails.utils');
 
@@ -12,7 +11,7 @@ const scheduleAppointmentController = async (req, res) => {
     const { id } = req.user;
 
     try {
-        const specialtyInfo = await getSpecialtyService(specialty);
+        const specialtyInfo = await getSpecialtyByNameService(specialty);
 
         if (specialtyInfo.rowCount < 1) {
             return res.status(404).json({ message: 'Não existe esta especialidade nesta clínica.' });
