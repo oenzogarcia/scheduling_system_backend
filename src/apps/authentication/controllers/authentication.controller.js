@@ -31,8 +31,8 @@ const registerController = async (req, res) => {
     }
 
     try {
-        const newUserCpfAndEmail = { email: data.email, cpf:  cpfFormatter(data.cpf) };
-        const {rowCount } = await getUserService(newUserCpfAndEmail);
+        const newUserCpfAndEmail = { email: data.email, cpf: cpfFormatter(data.cpf) };
+        const { rowCount } = await getUserService(newUserCpfAndEmail);
 
         if (rowCount > 0) {
             return res.status(400).json({
@@ -49,7 +49,7 @@ const registerController = async (req, res) => {
             cpf: cpfFormatter(data.cpf),
             password: encryptedPassword
         };
-       
+
         const newUser = await createUserService(dataNewUser);
         const token = generatorTokenJwtService(newUser, '30min');
         const pathTwoStepVerification = generatorPathTwoStepVerification(
@@ -58,9 +58,9 @@ const registerController = async (req, res) => {
             process.env.SERVER_EXPRESS_PORT,
             token
         );
- 
+
         sendMailService(newUser.email, 'Verificação de conta', `Clique para autenticar sua conta ->`, pathTwoStepVerification);
-        return res.status(201).json({user:{...newUser}, message: 'Verifique seu email.'});
+        return res.status(201).json({ user: { ...newUser }, message: 'Verifique seu email.' });
 
     } catch (error) {
 
@@ -79,17 +79,17 @@ const loginController = async (req, res) => {
 
     try {
 
-        const userExists = await getUserService({email: data.email})
+        const userExists = await getUserService({ email: data.email })
 
-        if(userExists.rowCount < 1){
-            return res.status(400).json({message: 'Email ou senha inválidos.'})
-        } 
-        
-        if(!userExists.rows[0].active){
-            return res.status(400).json({message: 'Você não realizou a verificação de duas etapas.'})
-        } 
+        if (userExists.rowCount < 1) {
+            return res.status(400).json({ message: 'Email ou senha inválidos.' })
+        }
 
-        const { rows, passwordIsValid} = await authenticateService(data?.email, data?.password);
+        if (!userExists.rows[0].active) {
+            return res.status(400).json({ message: 'Você não realizou a verificação de duas etapas.' })
+        }
+
+        const { rows, passwordIsValid } = await authenticateService(data?.email, data?.password);
 
         if (!passwordIsValid) {
             return res.status(400).json({ message: 'Email ou senha inválidos.' })
@@ -103,8 +103,8 @@ const loginController = async (req, res) => {
         })
 
     } catch (error) {
-      
-        return res.json({message: 'Erro interno do servidor. Tente novamente.'})
+
+        return res.status(500).json({ message: 'Erro interno do servidor. Tente novamente.' })
     }
 }
 
@@ -121,8 +121,8 @@ const twoStepVerificationController = async (req, res) => {
             const { id } = decoded;
 
             const { rows } = await getUserByIdService(id);
-        
-             if(rows[0].active){
+
+            if (rows[0].active) {
 
                 return res.status(400).json({
                     message: 'Você já utilizou esse token.'
@@ -131,14 +131,14 @@ const twoStepVerificationController = async (req, res) => {
             await updateUserService(id, true);
             return res.send(`Email verificado com sucesso! Faça login: <a href=http://localhost:5173/>Login</a>`);
         }
-    });  
+    });
 };
 
 const recoverPasswordMessageController = async (req, res) => {
     const data = req.body;
     const email = data.email;
 
-    const userExists = await getUserService({email: email});
+    const userExists = await getUserService({ email: email });
 
     if (userExists.rowCount < 1) {
         return res.status(400).json({
@@ -148,17 +148,17 @@ const recoverPasswordMessageController = async (req, res) => {
 
     const hashids = new Hashids(process.env.JWT_SECRETY_KEY);
 
-    const hash = hashids.encode(userExists.rows[0].id); 
+    const hash = hashids.encode(userExists.rows[0].id);
 
     const pathRecoverPassword = generatorPathRecoverPassword(
         process.env.SERVER_EXPRESS_PROTOCOL,
         process.env.SERVER_EXPRESS_HOST,
-        process.env.SERVER_FRONTEND_PORT, 
+        process.env.SERVER_FRONTEND_PORT,
         hash
     );
-                                                              
+
     sendMailService(email, 'Alterar senha', 'Clique para alterar sua senha:', pathRecoverPassword);
-    return res.status(200).json({message: 'Email enviado com sucesso.'});
+    return res.status(200).json({ message: 'Email enviado com sucesso.' });
 };
 
 const recoverPasswordController = async (req, res) => {
@@ -175,13 +175,13 @@ const recoverPasswordController = async (req, res) => {
 
     if (!hash?.trim()) {
         return res.status(400).json({
-            message : 'Ocorreu um erro inesperado. Tente novamente.'
+            message: 'Ocorreu um erro inesperado. Tente novamente.'
         });
     }
 
     const hashids = new Hashids(process.env.JWT_SECRETY_KEY);
     const id = hashids.decode(hash);
-    const {rowCount } = await getUserByIdService(Number(id));
+    const { rowCount } = await getUserByIdService(Number(id));
 
     if (rowCount < 1) {
         return res.status(400).json({
@@ -194,9 +194,9 @@ const recoverPasswordController = async (req, res) => {
 
     sendMailService(userUpdated.email, 'Sua senha foi alterada com sucesso.', 'Agora você pode usufruir do nosso sistema', '');
 
-    return res.status(200).json({message: 'Senha alterada com sucesso.'});
+    return res.status(200).json({ message: 'Senha alterada com sucesso.' });
 };
-       
+
 module.exports = {
     registerController,
     loginController,

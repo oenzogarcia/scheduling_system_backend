@@ -15,11 +15,11 @@ app.use(cors());
 
 app.use(authRoutes);
 
-app.use(verifyLoggedUser);
-
 app.use(specialtyRoutes);
 
 app.use(doctorRoutes);
+
+app.use(verifyLoggedUser);
 
 app.use(schedulingRoutes);
 
