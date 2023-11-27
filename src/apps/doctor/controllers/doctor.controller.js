@@ -1,4 +1,3 @@
-const pool = require('../../../connection');
 const createDoctorService = require('../services/createDoctor.service');
 const getDoctorByIdService = require('../services/getDoctorById.service');
 const getAllDoctorsService = require('../services/getAllDoctors.service');
