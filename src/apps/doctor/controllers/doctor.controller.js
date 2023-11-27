@@ -1,7 +1,9 @@
 const pool = require('../../../connection');
 const createDoctorService = require('../services/createDoctor.service');
 const getDoctorByIdService = require('../services/getDoctorById.service');
-const getAllDoctorsService = require('../services/getDoctors.service');
+const getAllDoctorsService = require('../services/getAllDoctors.service');
+const updateDoctorService = require('../services/updateDoctor.service');
+const deleteDoctorService = require('../services/deleteDoctor.service');
 
 const listDoctorsController = async (req, res) => {
     try {
@@ -24,7 +26,6 @@ const listDoctorByIdController = async (req, res) => {
 
         return res.json(doctor.rows[0]);
     } catch (error) {
-        console.log(error.message);
         return res.status(500).json({ message: 'Erro interno do servior. Favor tente novamente.' });
     }
 
@@ -42,7 +43,6 @@ const registerDoctorController = async (req, res) => {
         return res.status(201).json(registerDoctor.rows[0]);
 
     } catch (error) {
-        console.log(error.message);
         return res.status(500).json({ message: 'Erro interno do servior. Favor tente novamente.' });
     }
 }
@@ -56,18 +56,13 @@ const updateDoctorController = async (req, res) => {
     }
 
     try {
-        const doctor = await pool.query('SELECT * FROM doctors WHERE id = $1', [id]);
+        const doctor = await getDoctorByIdService(id);
 
         if (doctor.rowCount < 1) {
             return res.status(404).json({ message: 'Este doutor não existe.' });
         }
 
-        const registerDoctor = await pool.query(`
-        UPDATE doctors
-        SET
-        name = $1
-        WHERE id = $2
-        `, [name, id]);
+        const updateDoctor = await updateDoctorService(name, id);
 
         return res.status(204).json();
 
@@ -80,16 +75,13 @@ const updateDoctorController = async (req, res) => {
 const deleteDoctorController = async (req, res) => {
     const { id } = req.params;
     try {
-        const doctor = await pool.query('SELECT * FROM doctors WHERE id = $1', [id]);
+        const doctor = await getDoctorByIdService(id);
 
         if (doctor.rowCount < 1) {
             return res.status(404).json({ message: 'Este doutor não existe.' });
         }
 
-        const deleteDoctor = await pool.query(`
-        DELETE FROM doctors
-        WHERE id = $1
-        `, [id]);
+        const deleteDoctor = await deleteDoctorService(id);
 
         return res.status(204).json();
     } catch (error) {
