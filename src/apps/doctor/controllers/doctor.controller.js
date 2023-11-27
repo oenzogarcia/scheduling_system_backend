@@ -1,11 +1,13 @@
 const pool = require('../../../connection');
+const createDoctorService = require('../services/createDoctor.service');
+const getDoctorByIdService = require('../services/getDoctorById.service');
+const getAllDoctorsService = require('../services/getDoctors.service');
 
 const listDoctorsController = async (req, res) => {
     try {
-        const doctors = await pool.query('SELECT * FROM doctors')
+        const doctors = await getAllDoctorsService();
         return res.status(200).json(doctors.rows);
     } catch (error) {
-        console.log(error.message);
         return res.status(500).json({ message: 'Erro interno do servior. Favor tente novamente.' });
     }
 }
@@ -14,10 +16,7 @@ const listDoctorByIdController = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const doctor = await pool.query(
-            'SELECT * FROM doctors WHERE id = $1',
-            [id]
-        )
+        const doctor = await getDoctorByIdService(id);
 
         if (doctor.rowCount < 1) {
             return res.status(404).json({ message: 'Este doutor não existe.' });
@@ -39,14 +38,7 @@ const registerDoctorController = async (req, res) => {
     }
 
     try {
-        const registerDoctor = await pool.query(`
-        INSERT INTO doctors
-        (name)
-        VALUES
-        ($1)
-        RETURNING *
-        `, [name]);
-
+        const registerDoctor = await createDoctorService(name);
         return res.status(201).json(registerDoctor.rows[0]);
 
     } catch (error) {
